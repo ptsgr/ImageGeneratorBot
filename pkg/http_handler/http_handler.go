@@ -1,9 +1,10 @@
 package http_handler
 
 import (
-	"fmt"
 	"log"
 	"net/http"
+
+	"github.com/ptsgr/ImageGeneratorBot/pkg/image_creator"
 )
 
 func Run() {
@@ -12,5 +13,5 @@ func Run() {
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Hello from ImageGeneratorServer!")
+	image_creator.CreateImage(w)
 }
