@@ -1,6 +1,7 @@
 package http
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/ptsgr/ImageGeneratorBot/pkg/image_creator"
@@ -14,5 +15,8 @@ func InitHandlers() http.Handler {
 }
 
 func imageHandler(w http.ResponseWriter, r *http.Request) {
-	image_creator.CreateImage(w)
+	img := new(image_creator.Image)
+	if err := img.CreateImage(w); err != nil {
+		log.Fatalf("Error imageGenerator running http server: %s", err.Error())
+	}
 }
