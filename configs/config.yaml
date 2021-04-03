@@ -1,10 +1,7 @@
 imageGeneratorPort: 9000
 ImageProperties:
   # BackgroundImage: none
-  BackgraundColor:
-    Red: 44
-    Green: 154
-    Blue: 100
+  BackgraundColor: "#30A4D4"
   ImageWigth: 1920
   ImageHeight: 1080   
   # Text: "Hello from ImageBot"       
