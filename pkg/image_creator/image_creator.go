@@ -28,14 +28,42 @@ type ImageProperties struct {
 	TextColor       string
 }
 
+const (
+	DefaultBackgraundColor = "#FFF"
+	DefaultImageWigth      = 640
+	DefaultImageHeight     = 480
+	DefaultText            = "Image Generator"
+	DefaultTextColor       = "#000"
+)
+
 var imageProperties ImageProperties
 
 func (imageProperties *ImageProperties) InitImageProperties() {
 	imageProperties.ImageHeight = viper.GetInt("ImageProperties.ImageHeight")
+	if imageProperties.ImageHeight <= 0 {
+		imageProperties.ImageHeight = DefaultImageHeight
+	}
+
 	imageProperties.ImageWigth = viper.GetInt("ImageProperties.ImageWigth")
+	if imageProperties.ImageWigth <= 0 {
+		imageProperties.ImageWigth = DefaultImageWigth
+	}
+
 	imageProperties.BackgraundColor = viper.GetString("ImageProperties.BackgraundColor")
+	if imageProperties.BackgraundColor == "" {
+		imageProperties.BackgraundColor = DefaultBackgraundColor
+	}
+
 	imageProperties.Text = viper.GetString("ImageProperties.Text")
+	if imageProperties.Text == "" {
+		imageProperties.Text = DefaultText
+	}
+
 	imageProperties.TextColor = viper.GetString("ImageProperties.TextColor")
+	if imageProperties.TextColor == "" {
+		imageProperties.TextColor = DefaultTextColor
+	}
+
 }
 
 func (img *Image) CreateImage(out io.Writer) error {
