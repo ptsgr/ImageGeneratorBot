@@ -4,5 +4,5 @@ ImageProperties:
   BackgraundColor: "#30A4D4"
   ImageWigth: 1920
   ImageHeight: 1080   
-  # Text: "Hello from ImageBot"       
-  # TextColor: black
+  Text: "Hello from ImageBot"       
+  TextColor: "#D344DE"
