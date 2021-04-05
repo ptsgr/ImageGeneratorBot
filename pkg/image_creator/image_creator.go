@@ -2,7 +2,6 @@ package image_creator
 
 import (
 	"image"
-	"image/color"
 	"image/draw"
 	"image/png"
 	"io"
@@ -16,7 +15,8 @@ import (
 )
 
 type Image struct {
-	Image *image.RGBA
+	Image      *image.RGBA
+	Properties ImageProperties
 }
 
 type ImageProperties struct {
@@ -67,29 +67,34 @@ func (imageProperties *ImageProperties) InitImageProperties() {
 }
 
 func (img *Image) CreateImage(out io.Writer) error {
-	imageProperties.InitImageProperties()
-	img.Image = image.NewRGBA(image.Rect(0, 0, imageProperties.ImageWigth, imageProperties.ImageHeight))
-	clr, err := hex2rgb.ParsingHex(imageProperties.BackgraundColor)
+	img.Properties.InitImageProperties()
+	img.Image = image.NewRGBA(image.Rect(0, 0, img.Properties.ImageWigth, img.Properties.ImageHeight))
+	clr, err := hex2rgb.ParsingHex(img.Properties.BackgraundColor)
 	if err != nil {
 		log.Fatalf("Error parse color from config: %s", err.Error())
 	}
 	draw.Draw(img.Image, img.Image.Bounds(), image.NewUniform(clr.ToRGB()), image.Point{}, draw.Src)
-	textClr, err := hex2rgb.ParsingHex(imageProperties.TextColor)
+	img.AddText()
+	return png.Encode(out, img.Image)
+}
+
+func (img *Image) AddText() {
+
+	textClr, err := hex2rgb.ParsingHex(img.Properties.TextColor)
 	if err != nil {
 		log.Fatalf("Error parse color from config: %s", err.Error())
 	}
 
-	img.AddText(imageProperties.ImageWigth/2, imageProperties.ImageHeight/2, imageProperties.Text, textClr.ToRGB())
-	return png.Encode(out, img.Image)
-}
-
-func (img *Image) AddText(x, y int, text string, clr color.Color) {
-	point := fixed.Point26_6{X: fixed.Int26_6(x * 64), Y: fixed.Int26_6(y * 64)}
 	d := &font.Drawer{
 		Dst:  img.Image,
-		Src:  image.NewUniform(clr),
+		Src:  image.NewUniform(textClr.ToRGB()),
 		Face: basicfont.Face7x13,
-		Dot:  point,
 	}
-	d.DrawString(text)
+
+	d.Dot = fixed.Point26_6{
+		X: (fixed.I(img.Properties.ImageWigth) - d.MeasureString(img.Properties.Text)) / 2,
+		Y: fixed.I((img.Properties.ImageHeight) / 2),
+	}
+
+	d.DrawString(img.Properties.Text)
 }
