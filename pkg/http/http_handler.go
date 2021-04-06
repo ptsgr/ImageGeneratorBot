@@ -1,9 +1,9 @@
 package http
 
 import (
-	"html"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/ptsgr/ImageGeneratorBot/pkg/image_creator"
 )
@@ -19,9 +19,18 @@ func faviconHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func imageHandler(w http.ResponseWriter, r *http.Request) {
-	log.Printf("Hello, %q\n", html.EscapeString(r.URL.Path))
 	img := new(image_creator.Image)
-	if err := img.CreateImage(w); err != nil {
-		log.Fatalf("Error imageGenerator running http server: %s", err.Error())
+	img.Properties.InitImageProperties()
+
+	buffer, err := img.CreateImage()
+	if err != nil {
+		log.Fatalf("Error generate image: %s", err.Error())
 	}
+	w.Header().Set("Content-Type", "image/png")
+	w.Header().Set("Content-Length", strconv.Itoa(len(buffer.Bytes())))
+
+	if _, err := w.Write(buffer.Bytes()); err != nil {
+		log.Fatalf("Error return image from byte buffer: %s", err.Error())
+	}
+
 }

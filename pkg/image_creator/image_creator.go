@@ -1,10 +1,10 @@
 package image_creator
 
 import (
+	"bytes"
 	"image"
 	"image/draw"
 	"image/png"
-	"io"
 	"log"
 
 	"github.com/ptsgr/ImageGeneratorBot/pkg/hex2rgb"
@@ -66,7 +66,8 @@ func (imageProperties *ImageProperties) InitImageProperties() {
 
 }
 
-func (img *Image) CreateImage(out io.Writer) error {
+func (img *Image) CreateImage() (*bytes.Buffer, error) {
+	buffer := new(bytes.Buffer)
 	img.Properties.InitImageProperties()
 	img.Image = image.NewRGBA(image.Rect(0, 0, img.Properties.ImageWigth, img.Properties.ImageHeight))
 	clr, err := hex2rgb.ParsingHex(img.Properties.BackgraundColor)
@@ -75,7 +76,12 @@ func (img *Image) CreateImage(out io.Writer) error {
 	}
 	draw.Draw(img.Image, img.Image.Bounds(), image.NewUniform(clr.ToRGB()), image.Point{}, draw.Src)
 	img.AddText()
-	return png.Encode(out, img.Image)
+
+	if err := png.Encode(buffer, img.Image); err != nil {
+		return nil, err
+	}
+
+	return buffer, nil
 }
 
 func (img *Image) AddText() {
