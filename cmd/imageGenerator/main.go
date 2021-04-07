@@ -13,19 +13,22 @@ import (
 
 func main() {
 	if err := initConfig(); err != nil {
-		log.Fatalf("Error loading configs: %s", err.Error())
+		log.Printf("Error loading configs: %s", err.Error())
 	}
 
 	handlers := http.InitHandlers()
 	server := new(http.Server)
+	if server.Port = viper.GetString("imageGeneratorPort"); server.Port == "" {
+		server.Port = "8080"
+	}
 
 	go func() {
-		if err := server.Run(viper.GetString("imageGeneratorPort"), handlers); err != nil {
+		if err := server.Run(server.Port, handlers); err != nil {
 			log.Fatalf("Error imageGenerator running http server: %s", err.Error())
 		}
 	}()
 
-	log.Println("imageGenerator server started on port: ", viper.GetString("imageGeneratorPort"))
+	log.Println("imageGenerator server started on port: ", server.Port)
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)

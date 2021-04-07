@@ -68,7 +68,7 @@ func (imageProperties *ImageProperties) InitImageProperties() {
 
 func (img *Image) CreateImage() (*bytes.Buffer, error) {
 	buffer := new(bytes.Buffer)
-	img.Properties.InitImageProperties()
+
 	img.Image = image.NewRGBA(image.Rect(0, 0, img.Properties.ImageWigth, img.Properties.ImageHeight))
 	clr, err := hex2rgb.ParsingHex(img.Properties.BackgraundColor)
 	if err != nil {
