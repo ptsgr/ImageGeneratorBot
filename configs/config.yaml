@@ -6,3 +6,4 @@ ImageProperties:
   ImageHeight: 1080   
   Text: "Hello from ImageBot"       
   TextColor: "#D344DE"
+  labelFontFile: "assets/Pacifico.ttf"

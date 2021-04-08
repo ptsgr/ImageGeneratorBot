@@ -5,12 +5,13 @@ import (
 	"image"
 	"image/draw"
 	"image/png"
+	"io/ioutil"
 	"log"
 
+	"github.com/golang/freetype/truetype"
 	"github.com/ptsgr/ImageGeneratorBot/pkg/hex2rgb"
 	"github.com/spf13/viper"
 	"golang.org/x/image/font"
-	"golang.org/x/image/font/basicfont"
 	"golang.org/x/image/math/fixed"
 )
 
@@ -26,6 +27,7 @@ type ImageProperties struct {
 	ImageHeight     int
 	Text            string
 	TextColor       string
+	LabelFontFile   string
 }
 
 const (
@@ -34,6 +36,7 @@ const (
 	DefaultImageHeight     = 480
 	DefaultText            = "Image Generator"
 	DefaultTextColor       = "#000"
+	DefaultFontFile        = "assets/Raleway-Bold.ttf"
 )
 
 var imageProperties ImageProperties
@@ -64,6 +67,11 @@ func (imageProperties *ImageProperties) InitImageProperties() {
 		imageProperties.TextColor = DefaultTextColor
 	}
 
+	imageProperties.LabelFontFile = viper.GetString("ImageProperties.labelFontFile")
+	if imageProperties.LabelFontFile == "" {
+		imageProperties.LabelFontFile = DefaultFontFile
+	}
+
 }
 
 func (img *Image) CreateImage() (*bytes.Buffer, error) {
@@ -72,7 +80,7 @@ func (img *Image) CreateImage() (*bytes.Buffer, error) {
 	img.Image = image.NewRGBA(image.Rect(0, 0, img.Properties.ImageWigth, img.Properties.ImageHeight))
 	clr, err := hex2rgb.ParsingHex(img.Properties.BackgraundColor)
 	if err != nil {
-		log.Fatalf("Error parse color from config: %s", err.Error())
+		log.Printf("Error parse color from config: %s", err.Error())
 	}
 	draw.Draw(img.Image, img.Image.Bounds(), image.NewUniform(clr.ToRGB()), image.Point{}, draw.Src)
 	img.AddText()
@@ -88,13 +96,26 @@ func (img *Image) AddText() {
 
 	textClr, err := hex2rgb.ParsingHex(img.Properties.TextColor)
 	if err != nil {
-		log.Fatalf("Error parse color from config: %s", err.Error())
+		log.Printf("Error parse color from config: %s", err.Error())
+	}
+
+	fontBytes, err := ioutil.ReadFile(img.Properties.LabelFontFile)
+	if err != nil {
+		log.Printf("Error open font file: %s", err.Error())
+		return
+	}
+
+	labelFont, err := truetype.Parse(fontBytes)
+	if err != nil {
+		log.Printf("Error parse fontBytes: %s", err.Error())
 	}
 
 	d := &font.Drawer{
-		Dst:  img.Image,
-		Src:  image.NewUniform(textClr.ToRGB()),
-		Face: basicfont.Face7x13,
+		Dst: img.Image,
+		Src: image.NewUniform(textClr.ToRGB()),
+		Face: truetype.NewFace(labelFont, &truetype.Options{
+			Size: float64(img.Properties.ImageHeight / 2 / 10),
+		}),
 	}
 
 	d.Dot = fixed.Point26_6{
