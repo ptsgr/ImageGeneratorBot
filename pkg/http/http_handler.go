@@ -19,8 +19,10 @@ func faviconHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func imageHandler(w http.ResponseWriter, r *http.Request) {
+	httpKeys := r.URL.Query()
+	log.Println(httpKeys)
 	img := new(image_creator.Image)
-	img.Properties.InitImageProperties()
+	img.Properties.InitImageProperties(httpKeys)
 
 	buffer, err := img.CreateImage()
 	if err != nil {

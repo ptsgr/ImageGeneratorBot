@@ -41,37 +41,29 @@ const (
 
 var imageProperties ImageProperties
 
-func (imageProperties *ImageProperties) InitImageProperties() {
-	imageProperties.ImageHeight = viper.GetInt("ImageProperties.ImageHeight")
-	if imageProperties.ImageHeight <= 0 {
-		imageProperties.ImageHeight = DefaultImageHeight
+func setIntProperties(configKey string, defaultValue int) int {
+	intParam := viper.GetInt(configKey)
+	if intParam <= 0 {
+		intParam = defaultValue
 	}
+	return intParam
+}
 
-	imageProperties.ImageWigth = viper.GetInt("ImageProperties.ImageWigth")
-	if imageProperties.ImageWigth <= 0 {
-		imageProperties.ImageWigth = DefaultImageWigth
+func setStirngProperties(configKey, defaultValue string) string {
+	stringParam := viper.GetString(configKey)
+	if stringParam == "" {
+		return defaultValue
 	}
+	return stringParam
+}
 
-	imageProperties.BackgraundColor = viper.GetString("ImageProperties.BackgraundColor")
-	if imageProperties.BackgraundColor == "" {
-		imageProperties.BackgraundColor = DefaultBackgraundColor
-	}
-
-	imageProperties.Text = viper.GetString("ImageProperties.Text")
-	if imageProperties.Text == "" {
-		imageProperties.Text = DefaultText
-	}
-
-	imageProperties.TextColor = viper.GetString("ImageProperties.TextColor")
-	if imageProperties.TextColor == "" {
-		imageProperties.TextColor = DefaultTextColor
-	}
-
-	imageProperties.LabelFontFile = viper.GetString("ImageProperties.labelFontFile")
-	if imageProperties.LabelFontFile == "" {
-		imageProperties.LabelFontFile = DefaultFontFile
-	}
-
+func (imageProperties *ImageProperties) InitImageProperties(keys map[string][]string) {
+	imageProperties.ImageHeight = setIntProperties("ImageProperties.ImageHeight", DefaultImageHeight)
+	imageProperties.ImageWigth = setIntProperties("ImageProperties.ImageWigth", DefaultImageWigth)
+	imageProperties.BackgraundColor = setStirngProperties("ImageProperties.BackgraundColor", DefaultBackgraundColor)
+	imageProperties.Text = setStirngProperties("ImageProperties.Text", DefaultText)
+	imageProperties.TextColor = setStirngProperties("ImageProperties.TextColor", DefaultTextColor)
+	imageProperties.LabelFontFile = setStirngProperties("ImageProperties.labelFontFile", DefaultFontFile)
 }
 
 func (img *Image) CreateImage() (*bytes.Buffer, error) {
