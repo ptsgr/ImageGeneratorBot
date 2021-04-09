@@ -7,6 +7,7 @@ import (
 	"image/png"
 	"io/ioutil"
 	"log"
+	"strconv"
 
 	"github.com/golang/freetype/truetype"
 	"github.com/ptsgr/ImageGeneratorBot/pkg/hex2rgb"
@@ -58,11 +59,30 @@ func setStirngProperties(configKey, defaultValue string) string {
 }
 
 func (imageProperties *ImageProperties) InitImageProperties(keys map[string][]string) {
-	imageProperties.ImageHeight = setIntProperties("ImageProperties.ImageHeight", DefaultImageHeight)
-	imageProperties.ImageWigth = setIntProperties("ImageProperties.ImageWigth", DefaultImageWigth)
+
+	var err error
+
+	imageProperties.ImageHeight, err = strconv.Atoi(keys["height"][0])
+	if err != nil {
+		log.Printf("Error parse Image Height: %s\n Use value from config(if exist) or default value.", err.Error())
+		imageProperties.ImageHeight = setIntProperties("ImageProperties.ImageHeight", DefaultImageHeight)
+	}
+
+	imageProperties.ImageWigth, err = strconv.Atoi(keys["wigth"][0])
+	if err != nil {
+		log.Printf("Error parse Image Wigth: %s\nUse value from config(if exist) or default value.", err.Error())
+		imageProperties.ImageWigth = setIntProperties("ImageProperties.ImageWigth", DefaultImageWigth)
+	}
+
+	if keys["label"] != nil && keys["label"][0] != "" {
+		imageProperties.Text = keys["label"][0]
+	} else {
+		imageProperties.Text = setStirngProperties("ImageProperties.Text", DefaultText)
+	}
+
 	imageProperties.BackgraundColor = setStirngProperties("ImageProperties.BackgraundColor", DefaultBackgraundColor)
-	imageProperties.Text = setStirngProperties("ImageProperties.Text", DefaultText)
 	imageProperties.TextColor = setStirngProperties("ImageProperties.TextColor", DefaultTextColor)
+
 	imageProperties.LabelFontFile = setStirngProperties("ImageProperties.labelFontFile", DefaultFontFile)
 }
 
