@@ -23,11 +23,11 @@ type Image struct {
 
 type ImageProperties struct {
 	BackgroundImage *image.Image
-	BackgraundColor string
+	BackgraundColor *hex2rgb.Hex
 	ImageWigth      int
 	ImageHeight     int
 	Text            string
-	TextColor       string
+	TextColor       *hex2rgb.Hex
 	LabelFontFile   string
 }
 
@@ -57,32 +57,63 @@ func setStirngProperties(configKey, defaultValue string) string {
 	}
 	return stringParam
 }
+func setColorProperties(configKey, defaultValue string) *hex2rgb.Hex {
+	stringColor := viper.GetString(configKey)
+	clr, err := hex2rgb.ParsingHex(stringColor)
+	if err != nil {
+		log.Printf("Error cannot use color from config: %s", err.Error())
+		clr, _ = hex2rgb.ParsingHex(defaultValue)
+	}
+	return clr
+
+}
 
 func (imageProperties *ImageProperties) InitImageProperties(keys map[string][]string) {
 
 	var err error
-
-	imageProperties.ImageHeight, err = strconv.Atoi(keys["height"][0])
-	if err != nil {
-		log.Printf("Error parse Image Height: %s\n Use value from config(if exist) or default value.", err.Error())
+	if keys["height"] != nil {
+		imageProperties.ImageHeight, err = strconv.Atoi(keys["height"][0])
+		if err != nil {
+			log.Printf("Error parse Image Height: %s\nUse value from config(if exist) or default value.", err.Error())
+			imageProperties.ImageHeight = setIntProperties("ImageProperties.ImageHeight", DefaultImageHeight)
+		}
+	} else {
 		imageProperties.ImageHeight = setIntProperties("ImageProperties.ImageHeight", DefaultImageHeight)
 	}
-
-	imageProperties.ImageWigth, err = strconv.Atoi(keys["wigth"][0])
-	if err != nil {
-		log.Printf("Error parse Image Wigth: %s\nUse value from config(if exist) or default value.", err.Error())
+	if keys["wigth"] != nil {
+		imageProperties.ImageWigth, err = strconv.Atoi(keys["wigth"][0])
+		if err != nil {
+			log.Printf("Error parse Image Wigth: %s\nUse value from config(if exist) or default value.", err.Error())
+			imageProperties.ImageWigth = setIntProperties("ImageProperties.ImageWigth", DefaultImageWigth)
+		}
+	} else {
 		imageProperties.ImageWigth = setIntProperties("ImageProperties.ImageWigth", DefaultImageWigth)
 	}
 
-	if keys["label"] != nil && keys["label"][0] != "" {
+	if keys["label"] != nil {
 		imageProperties.Text = keys["label"][0]
 	} else {
 		imageProperties.Text = setStirngProperties("ImageProperties.Text", DefaultText)
 	}
+	if keys["color"] != nil {
+		imageProperties.BackgraundColor, err = hex2rgb.ParsingHex("#" + keys["color"][0])
+		if err != nil {
+			log.Printf("Error parse %s backgraund color: %s", keys["color"][0], err.Error())
+			imageProperties.BackgraundColor = setColorProperties("ImageProperties.BackgraundColor", DefaultBackgraundColor)
+		}
+	} else {
+		imageProperties.BackgraundColor = setColorProperties("ImageProperties.BackgraundColor", DefaultBackgraundColor)
+	}
 
-	imageProperties.BackgraundColor = setStirngProperties("ImageProperties.BackgraundColor", DefaultBackgraundColor)
-	imageProperties.TextColor = setStirngProperties("ImageProperties.TextColor", DefaultTextColor)
-
+	if keys["labelColor"] != nil {
+		imageProperties.TextColor, err = hex2rgb.ParsingHex("#" + keys["labelColor"][0])
+		if err != nil {
+			log.Printf("Error parse %s label color: %s", keys["labelColor"][0], err.Error())
+			imageProperties.TextColor = setColorProperties("ImageProperties.TextColor", DefaultTextColor)
+		}
+	} else {
+		imageProperties.TextColor = setColorProperties("ImageProperties.TextColor", DefaultTextColor)
+	}
 	imageProperties.LabelFontFile = setStirngProperties("ImageProperties.labelFontFile", DefaultFontFile)
 }
 
@@ -90,11 +121,8 @@ func (img *Image) CreateImage() (*bytes.Buffer, error) {
 	buffer := new(bytes.Buffer)
 
 	img.Image = image.NewRGBA(image.Rect(0, 0, img.Properties.ImageWigth, img.Properties.ImageHeight))
-	clr, err := hex2rgb.ParsingHex(img.Properties.BackgraundColor)
-	if err != nil {
-		log.Printf("Error parse color from config: %s", err.Error())
-	}
-	draw.Draw(img.Image, img.Image.Bounds(), image.NewUniform(clr.ToRGB()), image.Point{}, draw.Src)
+
+	draw.Draw(img.Image, img.Image.Bounds(), image.NewUniform(img.Properties.BackgraundColor.ToRGB()), image.Point{}, draw.Src)
 	img.AddText()
 
 	if err := png.Encode(buffer, img.Image); err != nil {
@@ -105,11 +133,6 @@ func (img *Image) CreateImage() (*bytes.Buffer, error) {
 }
 
 func (img *Image) AddText() {
-
-	textClr, err := hex2rgb.ParsingHex(img.Properties.TextColor)
-	if err != nil {
-		log.Printf("Error parse color from config: %s", err.Error())
-	}
 
 	fontBytes, err := ioutil.ReadFile(img.Properties.LabelFontFile)
 	if err != nil {
@@ -124,7 +147,7 @@ func (img *Image) AddText() {
 
 	d := &font.Drawer{
 		Dst: img.Image,
-		Src: image.NewUniform(textClr.ToRGB()),
+		Src: image.NewUniform(img.Properties.TextColor.ToRGB()),
 		Face: truetype.NewFace(labelFont, &truetype.Options{
 			Size: float64(img.Properties.ImageHeight / 2 / 10),
 		}),
