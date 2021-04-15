@@ -37,7 +37,7 @@ func main() {
 		case "help":
 			msg.Text = "Write /status command"
 		case "status":
-			msg.Text = "Ok"
+			msg.Text = "OK"
 		default:
 			msg.Text = "Try /help command"
 		}
