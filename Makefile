@@ -5,6 +5,6 @@ build:
 	
 .PHONY: run
 run:
-	go run cmd/imageGenerator/main.go
+	go run cmd/imageGenerator/imageGenerator.go
 
 .DEFAUL_GOAL := build

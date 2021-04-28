@@ -31,7 +31,9 @@ func main() {
 			continue
 		}
 
+		log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
 		msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
+		// msg := tgbotapi.NewPhotoUpload(update.Message.Chat.ID, nil)
 
 		switch update.Message.Command() {
 		case "help":
